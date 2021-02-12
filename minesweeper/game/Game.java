@@ -36,11 +36,13 @@ public class Game {
     }
 
     private Mine[][] mines;
+    private int bombCount;
 
     public Game() { this(Difficulty.DEFAULT); }
     public Game(Difficulty d) { this(d.getX(), d.getY(), d.getBombs()); }
     public Game(int x, int y, int bombCount) {
         mines = new Mine[y][x];
+        this.bombCount = bombCount;
 
         // initialize array
         for (int b = 0; b < getHeight(); b++) {
@@ -103,15 +105,21 @@ public class Game {
         mines[y][x].setDiscovered(discovered);
     }
 
-    // returns true if you hit a bomb
-    public boolean uncoverSquare(int x, int y) {
+    // returns 1 if lose, 2 if win, 0 otherwise
+    public int uncoverSquare(int x, int y) {
         if (isBomb(x, y)) {
             // game over
             System.out.println(x+", "+y+" - game over :sad:");
-            return true;
+            return 1;
+        }
+
+        if (checkGameWin()) {
+            System.out.println("you won!");
+            return 2;
         }
 
         setDiscovered(x, y, true);
+
         
         if (getNeighbors(x, y) == 0) {
             for (int i = Math.max(y - 1, 0); i < Math.min(y + 2, getHeight()); i++) {
@@ -123,16 +131,19 @@ public class Game {
             }
         }
 
-        return false;
+        return 0;
     }
     
     public void printBoard() {
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
                 if (isFlagged(x, y))
-                    System.out.print("|F");
+                    System.out.print("|⚑");
                 else if (isDiscovered(x, y)) {
-                    System.out.print("|"+getNeighbors(x, y));
+                    if (getNeighbors(x, y) > 0)
+                        System.out.print("|"+getNeighbors(x, y));
+                    else
+                        System.out.print("|•");
                 } else
                     System.out.print("| ");
             }
@@ -146,6 +157,18 @@ public class Game {
             mines[y][x].setFlagged(false);
         else
             mines[y][x].setFlagged(true);
+    }
+
+    public boolean checkGameWin() {
+        int numUndiscovered = 0;
+        for (int y = 0; y < getHeight(); y++) {
+            for (int x = 0; x < getWidth(); x++) {
+                if (!isDiscovered(x, y))
+                    numUndiscovered++;
+            }
+        }
+
+        return numUndiscovered-1 == bombCount;
     }
 
     public int getNeighbors(int x, int y) {

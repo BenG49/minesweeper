@@ -1,7 +1,6 @@
 package minesweeper;
 
-import minesweeper.game.Game;
-import minesweeper.game.GameSolver;
+import minesweeper.game.*;
 import minesweeper.game.Game.Difficulty;
 
 public class Main {
@@ -10,8 +9,6 @@ public class Main {
         GameSolver solver = new GameSolver(g);
 
         g.printBoard();
-        solver.execute();
-        System.out.println();
-        g.printBoard();
+        solver.run();
     }
 }

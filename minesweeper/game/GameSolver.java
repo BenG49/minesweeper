@@ -1,12 +1,18 @@
 package minesweeper.game;
 
+import java.util.Scanner;
+
 public class GameSolver {
     private Game board;
 
     private boolean[][] zeroes;
+    public boolean won, lost;
 
     public GameSolver(Game board) {
         this.board = board;
+
+        won = false;
+        lost = false;
 
         zeroes = new boolean[board.getWidth()][board.getHeight()];
         for (int y = 0; y < board.getHeight(); y++) {
@@ -17,6 +23,28 @@ public class GameSolver {
                 }
             }
         }
+    }
+
+    public void run() {
+        Scanner scanner = new Scanner(System.in);
+        String input;
+
+        while(!won && !lost) {
+            System.out.println("---------");
+            System.out.println("Press enter to execute, type q and enter to quit.");
+
+            input = scanner.nextLine();
+
+            if (input.toLowerCase().equals("q"))
+                break;
+            
+            execute();
+
+            System.out.println();
+            board.printBoard();
+        }
+
+        scanner.close();
     }
 
     public void execute() {
@@ -34,6 +62,15 @@ public class GameSolver {
                 int flags = getNeighborFlags(x, y);
                 int undiscovered = getNeighborUndiscovered(x, y);
 
+                // UNCOVER ALGORITHMS - this could be in a separate loop, but i decided not to
+                if (value == flags) {
+                    if (undiscovered > 0) {
+                        valueFulfilled(x, y);
+                        // update values for next if statement
+                        undiscovered = getNeighborUndiscovered(x, y);
+                    }
+                }
+
                 // FLAG ALGORITHMS
                 // NO CHOICE FLAGGING
                 if (value-flags == undiscovered) {
@@ -43,13 +80,11 @@ public class GameSolver {
                 }
 
                 // ONES FLANKING TWO
-                if (value == 2)
+                if (value == 2) {
                     onesFlankingTwoAlg(x, y);
-
-                // UNCOVER ALGORITHMS - this could be in a separate loop, but i decided not to
-                if (value == flags) {
-                    if (undiscovered > 0)
-                        valueFulfilled(x, y);
+                    // update values for next if statement
+                    flags = getNeighborFlags(x, y);
+                    undiscovered = getNeighborUndiscovered(x, y);
                 }
             }
         }
@@ -84,11 +119,10 @@ public class GameSolver {
 
     // FLAG PLACING PATTERN RECOGNITION ALGS
     private void noChoiceAlg(int x, int y) {
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i+=2) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j+=2) {
+        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
+            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
                 if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
                     board.flagSquare(j, i);
-                    break;
                 }
             }
         }
@@ -121,8 +155,8 @@ public class GameSolver {
             }
 
             // positive direction
-            if (var != 0 && !board.isDiscovered(x+xOffset, y+yOffset)) {
-                board.uncoverSquare(x+xOffset, y+yOffset);
+            if (var < maxVar && !board.isDiscovered(x+xOffset, y+yOffset)) {
+                wonLost(board.uncoverSquare(x+xOffset, y+yOffset));
                 if (!board.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset))
                     board.flagSquare(x+xOffset-yOffset, y-xOffset+yOffset);
                 if (!board.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset))
@@ -130,8 +164,8 @@ public class GameSolver {
             }
 
             // negative direction
-            if (var < maxVar && !board.isDiscovered(x-xOffset, y-yOffset)) {
-                board.uncoverSquare(x-xOffset, y-yOffset);
+            if (var != 0 && !board.isDiscovered(x-xOffset, y-yOffset)) {
+                wonLost(board.uncoverSquare(x-xOffset, y-yOffset));
                 if (!board.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset))
                     board.flagSquare(x-xOffset-yOffset, y-xOffset-yOffset);
                 if (!board.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset))
@@ -144,9 +178,17 @@ public class GameSolver {
     private void valueFulfilled(int x, int y) {
         for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
             for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (!board.isDiscovered(j, i) && !board.isFlagged(j, i))
-                    board.uncoverSquare(j, i);
+                if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
+                    wonLost(board.uncoverSquare(j, i));
+                }
             }
         }
+    }
+
+    private void wonLost(int i) {
+        if (i == 1)
+            lost = true;
+        else if (i == 2)
+            won = true;
     }
 }
