@@ -1,7 +1,5 @@
 package minesweeper.game;
 
-import javax.annotation.processing.RoundEnvironment;
-
 public class GameSolver {
     private Game board;
 
@@ -15,7 +13,7 @@ public class GameSolver {
             for (int x = 0; x < board.getWidth(); x++) {
                 if (board.isDiscovered(x, y)) {
                     if (board.getNeighbors(x, y) == 0)
-                        zeroes[x][y] = true;
+                        zeroes[y][x] = true;
                 }
             }
         }
@@ -25,10 +23,10 @@ public class GameSolver {
         for (int y = 0; y < board.getHeight(); y++) {
             for (int x = 0; x < board.getWidth(); x++) {
                 // if discovered and not flagged and not a zero
-                if (!board.isDiscovered(x, y) || board.isFlagged(x, y) || zeroes[x][y] || board.getNeighbors(x, y) == 0) {
+                if (!board.isDiscovered(x, y) || board.isFlagged(x, y) || zeroes[y][x] || board.getNeighbors(x, y) == 0) {
                     // if within the 'islands' and has no neighbors, add to list
                     if (board.getNeighbors(x, y) == 0)
-                        zeroes[x][y] = true;
+                        zeroes[y][x] = true;
                     continue;
                 }
 
@@ -99,11 +97,11 @@ public class GameSolver {
     private void onesFlankingTwoAlg(int x, int y) {
         int orientation = 0;
 
-        // vertically flanking
+        // horizontally flanking
         if (x > 0 && x < board.getWidth()-1 && board.getNeighbors(x-1, y) == 1 && board.getNeighbors(x+1, y) == 1)
             orientation = 1;
 
-        // horizontally flanking
+        // vertically flanking
         else if (y > 0 && y < board.getHeight()-1 && board.getNeighbors(x, y-1) == 1 && board.getNeighbors(x, y+1) == 1)
             orientation = 2;
 
@@ -111,37 +109,33 @@ public class GameSolver {
             int var, maxVar, xOffset, yOffset;
 
             if (orientation == 1) {
-                var = x;
-                maxVar = board.getWidth()-1;
-                xOffset = 1;
-                yOffset = 0;
-            } else /*if (orientation == 2)*/ {
                 var = y;
                 maxVar = board.getHeight()-1;
                 xOffset = 0;
                 yOffset = 1;
+            } else /*if (orientation == 2)*/ {
+                var = x;
+                maxVar = board.getWidth()-1;
+                xOffset = 1;
+                yOffset = 0;
             }
 
-            System.out.println(x+", "+y);
-
-            if (var != 0 && board.isDiscovered((x+xOffset), (y+yOffset))) {
+            // positive direction
+            if (var != 0 && !board.isDiscovered(x+xOffset, y+yOffset)) {
                 board.uncoverSquare(x+xOffset, y+yOffset);
-                if (!board.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset)) {
-                    board.flagSquare(x-xOffset-yOffset, y-xOffset-yOffset);
-                }
-                if (!board.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset)) {
-                    board.flagSquare(x-xOffset-yOffset, y-xOffset-yOffset);
-                }
+                if (!board.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset))
+                    board.flagSquare(x+xOffset-yOffset, y-xOffset+yOffset);
+                if (!board.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset))
+                    board.flagSquare(x+xOffset+yOffset, y+xOffset+yOffset);
             }
 
-            if (var < maxVar && board.isDiscovered(x-xOffset, y-yOffset)) {
-                board.uncoverSquare(x+xOffset, y+yOffset);
-                if (!board.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset)) {
-                    board.flagSquare(x+xOffset-yOffset, y-xOffset+yOffset);
-                }
-                if (!board.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset)) {
-                    board.flagSquare(x+xOffset-yOffset, y-xOffset+yOffset);
-                }
+            // negative direction
+            if (var < maxVar && !board.isDiscovered(x-xOffset, y-yOffset)) {
+                board.uncoverSquare(x-xOffset, y-yOffset);
+                if (!board.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset))
+                    board.flagSquare(x-xOffset-yOffset, y-xOffset-yOffset);
+                if (!board.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset))
+                    board.flagSquare(x-xOffset+yOffset, y+xOffset-yOffset);
             }
         }
     }
