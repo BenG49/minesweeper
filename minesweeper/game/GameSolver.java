@@ -1,15 +1,15 @@
 package minesweeper.game;
 
-import java.util.Scanner;
-
 public class GameSolver {
     private Game board;
-
     private boolean[][] zeroes;
     public boolean won, lost;
 
-    public GameSolver(Game board) {
+    private final int sleepTimeMillis;
+
+    public GameSolver(Game board, int sleepTimeMillis) {
         this.board = board;
+        this.sleepTimeMillis = sleepTimeMillis;
 
         won = false;
         lost = false;
@@ -25,33 +25,34 @@ public class GameSolver {
         }
     }
 
-    public void run() {
-        Scanner scanner = new Scanner(System.in);
-        String input;
+    public void run(int consecutiveNonMovement) {
+        boolean moved = true;
+        int noMovementCount = 0;
 
-        while(!won && !lost) {
-            System.out.println("---------");
-            System.out.println("Press enter to execute, type q and enter to quit.");
+        while(!won && !lost && moved) {
+            if (!execute())
+                noMovementCount++;
+            else
+                noMovementCount = 0;
 
-            input = scanner.nextLine();
+            if (noMovementCount > consecutiveNonMovement) {
+                System.out.println("\nStuck :(\n");
+                moved = false;
+            }
 
-            if (input.toLowerCase().equals("q"))
-                break;
-            
-            execute();
-
-            System.out.println();
-            board.printBoard();
+            if (won)
+                System.out.println("\nWon!\n");
         }
-
-        scanner.close();
     }
 
-    public void execute() {
+    // RETURNS IF ANY MOVES WERE MADE
+    public boolean execute() {
+        boolean moved = false;
+
         for (int y = 0; y < board.getHeight(); y++) {
             for (int x = 0; x < board.getWidth(); x++) {
-                // if discovered and not flagged and not a zero
-                if (!board.isDiscovered(x, y) || board.isFlagged(x, y) || zeroes[y][x] || board.getNeighbors(x, y) == 0) {
+                // conditions to keep computing the square
+                if (zeroes[y][x] || !board.isDiscovered(x, y) || board.isFlagged(x, y) || board.getNeighbors(x, y) == 0) {
                     // if within the 'islands' and has no neighbors, add to list
                     if (board.getNeighbors(x, y) == 0)
                         zeroes[y][x] = true;
@@ -59,37 +60,23 @@ public class GameSolver {
                 }
 
                 int value = board.getNeighbors(x, y);
-                int flags = getNeighborFlags(x, y);
                 int undiscovered = getNeighborUndiscovered(x, y);
 
-                // UNCOVER ALGORITHMS - this could be in a separate loop, but i decided not to
-                if (value == flags) {
-                    if (undiscovered > 0) {
-                        valueFulfilled(x, y);
-                        // update values for next if statement
-                        undiscovered = getNeighborUndiscovered(x, y);
-                    }
-                }
-
-                // FLAG ALGORITHMS
-                // NO CHOICE FLAGGING
-                if (value-flags == undiscovered) {
-                    noChoiceAlg(x, y);
-                    // update values for next if statement
-                    flags = getNeighborFlags(x, y);
-                }
+                if (!moved && mainAlg(x, y, getMinesLeft(x, y), undiscovered))
+                    moved = true;
 
                 // ONES FLANKING TWO
                 if (value == 2) {
-                    onesFlankingTwoAlg(x, y);
-                    // update values for next if statement
-                    flags = getNeighborFlags(x, y);
-                    undiscovered = getNeighborUndiscovered(x, y);
+                    if (!moved && onesFlankingTwoAlg(x, y))
+                        moved = true;
                 }
             }
         }
+
+        return moved;
     }
 
+    // RETURNS NEIGHBORING FLAGS
     private int getNeighborFlags(int x, int y) {
         int output = 0;
 
@@ -103,6 +90,7 @@ public class GameSolver {
         return output;
     }
 
+    // RETURNS UNDISCOVERED AND UNFLAGGED SQUARES NEIGHBORING
     private int getNeighborUndiscovered(int x, int y) {
         int output = 0;
 
@@ -116,20 +104,16 @@ public class GameSolver {
         return output;
     }
 
-
-    // FLAG PLACING PATTERN RECOGNITION ALGS
-    private void noChoiceAlg(int x, int y) {
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
-                    board.flagSquare(j, i);
-                }
-            }
-        }
+    // RETURNS SIGNED VALUE OF SQUARES FLAGGED VS VALUE
+    private int getMinesLeft(int x, int y) {
+        return board.getNeighbors(x, y)-getNeighborFlags(x, y);
     }
 
-    private void onesFlankingTwoAlg(int x, int y) {
+
+    // TWO WITH ONES FLANKING PATTERN - RETURNS IF MOVE WAS MADE
+    private boolean onesFlankingTwoAlg(int x, int y) {
         int orientation = 0;
+        boolean moved = false;
 
         // horizontally flanking
         if (x > 0 && x < board.getWidth()-1 && board.getNeighbors(x-1, y) == 1 && board.getNeighbors(x+1, y) == 1)
@@ -156,39 +140,110 @@ public class GameSolver {
 
             // positive direction
             if (var < maxVar && !board.isDiscovered(x+xOffset, y+yOffset)) {
-                wonLost(board.uncoverSquare(x+xOffset, y+yOffset));
-                if (!board.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset))
-                    board.flagSquare(x+xOffset-yOffset, y-xOffset+yOffset);
-                if (!board.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset))
-                    board.flagSquare(x+xOffset+yOffset, y+xOffset+yOffset);
+                if (!moved && uncover(x+xOffset, y+yOffset))
+                    moved = true;
+                if (!board.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset)) {
+                    flag(x+xOffset-yOffset, y-xOffset+yOffset);
+                    moved = true;
+                }
+                if (!board.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset)) {
+                    flag(x+xOffset+yOffset, y+xOffset+yOffset);
+                    moved = true;
+                }
             }
 
             // negative direction
             if (var != 0 && !board.isDiscovered(x-xOffset, y-yOffset)) {
-                wonLost(board.uncoverSquare(x-xOffset, y-yOffset));
-                if (!board.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset))
-                    board.flagSquare(x-xOffset-yOffset, y-xOffset-yOffset);
-                if (!board.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset))
-                    board.flagSquare(x-xOffset+yOffset, y+xOffset-yOffset);
-            }
-        }
-    }
-
-    // UNCOVERING ALGORITHMS
-    private void valueFulfilled(int x, int y) {
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
-                    wonLost(board.uncoverSquare(j, i));
+                if(!moved && uncover(x-xOffset, y-yOffset))
+                    moved = true;
+                if (!board.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset)) {
+                    flag(x-xOffset-yOffset, y-xOffset-yOffset);
+                    moved = true;
+                }
+                if (!board.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset)) {
+                    flag(x-xOffset+yOffset, y+xOffset-yOffset);
+                    moved = true;
                 }
             }
         }
+
+        return moved;
     }
 
+    // MAIN ALGORITHM - RETURNS IF MOVE WAS MADE
+    private boolean mainAlg(int x, int y, int minesLeft, int undiscovered) {
+        boolean uncover = minesLeft == 0 && undiscovered > 0;
+        boolean flag = minesLeft == undiscovered;
+        boolean moved = false;
+
+        if (uncover || flag) {
+            for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
+                for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
+                    if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
+                        if (uncover) {
+                            if (!moved && uncover(j, i))
+                                moved = true;
+                        }
+                        if (flag) {
+                            flag(j, i);
+                            moved = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return moved;
+    }
+
+    // UNCOVERING WRAPPER METHOD - RETURNS IF SQUARE WAS UNCOVERED
+    private boolean uncover(int x, int y) {
+        boolean uncover = true;
+
+        if (uncover) {
+            wonLost(board.uncoverSquare(x, y, false));
+            System.out.println();
+            board.printBoard();
+            sleep();
+        }
+
+        return uncover;
+    }
+
+    // FLAGGING WRAPPER METHOD
+    private void flag(int x, int y) {
+        boolean flag = true;
+
+        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
+            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
+                if (board.isDiscovered(j, i) && getMinesLeft(j, i) < 1) {
+                    flag = false;
+                    break;
+                }
+            }
+        }
+
+        if (flag) {
+            board.flagSquare(x, y);
+            System.out.println();
+            board.printBoard();
+            sleep();
+        }
+    }
+
+    // WIN/LOSE CHECK
     private void wonLost(int i) {
         if (i == 1)
             lost = true;
         else if (i == 2)
             won = true;
+    }
+
+    private void sleep() {
+        try {
+            Thread.sleep(sleepTimeMillis);
+        } catch(InterruptedException e) {
+            System.out.println("got interrupted!");
+        }
     }
 }

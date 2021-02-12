@@ -1,5 +1,8 @@
 package minesweeper.game;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 import java.util.Random;
 
 public class Game {
@@ -71,15 +74,11 @@ public class Game {
             j = rand.nextInt(getWidth());
             i = rand.nextInt(getHeight());
 
-            setDiscovered(j, i, true);
-
-            if (getNeighbors(j, i) == 0 && !isBomb(j, i))
+            if (getNeighborsPrivate(j, i) == 0 && !isBomb(j, i))
                 break;
-
-            setDiscovered(j, i, false);
         }
 
-        uncoverSquare(j, i);
+        uncoverSquare(j, i, false);
     }
 
     public int getWidth() { return mines[0].length; }
@@ -106,29 +105,40 @@ public class Game {
     }
 
     // returns 1 if lose, 2 if win, 0 otherwise
-    public int uncoverSquare(int x, int y) {
+    private List<List<Integer>> toUncover = new ArrayList<List<Integer>>();
+    public int uncoverSquare(int x, int y, boolean throughRecursion) {
+        // game over
         if (isBomb(x, y)) {
-            // game over
             System.out.println(x+", "+y+" - game over :sad:");
             return 1;
         }
 
-        if (checkGameWin()) {
-            System.out.println("you won!");
+        // game win
+        if (checkGameWin())
             return 2;
-        }
 
-        setDiscovered(x, y, true);
-
+        // adds all squares to list to be added later
+        if (throughRecursion)
+            toUncover.add(Arrays.asList(x, y));
+        else
+            setDiscovered(x, y, true);
         
-        if (getNeighbors(x, y) == 0) {
+        if (getNeighborsPrivate(x, y) == 0) {
+            setDiscovered(x, y, false);
             for (int i = Math.max(y - 1, 0); i < Math.min(y + 2, getHeight()); i++) {
                 for (int j = Math.max(x - 1, 0); j < Math.min(x + 2, getWidth()); j++) {
-                    if (!isDiscovered(j, i) && !isBomb(j, i)) {
-                        uncoverSquare(j, i);
+                    if (!isDiscovered(j, i) && !isBomb(j, i) && !toUncover.contains(Arrays.asList(j, i))) {
+                        uncoverSquare(j, i, true);
                     }
                 }
             }
+        }
+
+        if (throughRecursion) {
+            for (int i = 0; i < toUncover.size(); i++)
+                setDiscovered(toUncover.get(i).get(0), toUncover.get(i).get(1), true);
+            
+            toUncover = new ArrayList<List<Integer>>();
         }
 
         return 0;
@@ -173,19 +183,23 @@ public class Game {
 
     public int getNeighbors(int x, int y) {
         if (isDiscovered(x, y)) {
-            int output = 0;
-
-            for (int i = Math.max(y-1, 0); i < Math.min(y+2, getHeight()); i++) {
-                for (int j = Math.max(x-1, 0); j < Math.min(x+2, getWidth()); j++) {
-                    if (!(i == 0 && j == 0) && isBomb(j, i)) {
-                        output++;
-                    }
-                }
-            }
-
-            return output;
+            return getNeighborsPrivate(x, y);
         }
 
         return -1;
+    }
+
+    private int getNeighborsPrivate(int x, int y) {
+        int output = 0;
+
+        for (int i = Math.max(y-1, 0); i < Math.min(y+2, getHeight()); i++) {
+            for (int j = Math.max(x-1, 0); j < Math.min(x+2, getWidth()); j++) {
+                if (isBomb(j, i)) {
+                    output++;
+                }
+            }
+        }
+
+        return output;
     }
 }
