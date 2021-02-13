@@ -3,16 +3,16 @@ package minesweeper.game;
 public class GameSolver {
     private Game board;
     private boolean[][] zeroes;
+    private int sleepTimeMillis;
+
     public boolean won, lost;
 
-    private final int sleepTimeMillis;
-
-    public GameSolver(Game board, int sleepTimeMillis) {
+    public GameSolver(Game board) {
         this.board = board;
-        this.sleepTimeMillis = sleepTimeMillis;
 
         won = false;
         lost = false;
+        sleepTimeMillis = -1;
 
         zeroes = new boolean[board.getHeight()][board.getWidth()];
         for (int y = 0; y < board.getHeight(); y++) {
@@ -25,9 +25,10 @@ public class GameSolver {
         }
     }
 
-    public void run(int consecutiveNonMovement) {
+    public void run(int consecutiveNonMovement, int sleepTimeMillis) {
         boolean moved = true;
         int noMovementCount = 0;
+        this.sleepTimeMillis = sleepTimeMillis;
 
         while(!won && !lost && moved) {
             if (!execute())
@@ -199,9 +200,7 @@ public class GameSolver {
     // UNCOVERING WRAPPER METHOD - RETURNS IF SQUARE WAS UNCOVERED
     private boolean uncover(int x, int y) {
         wonLost(board.uncoverSquare(x, y, false));
-        System.out.println();
-        board.printBoard();
-        sleep();
+        print();
 
         return true;
     }
@@ -221,9 +220,7 @@ public class GameSolver {
 
         if (flag) {
             board.flagSquare(x, y);
-            System.out.println();
-            board.printBoard();
-            sleep();
+            print();
         }
 
         return flag;
@@ -236,11 +233,16 @@ public class GameSolver {
             won = true;
     }
 
-    private void sleep() {
-        try {
-            Thread.sleep(sleepTimeMillis);
-        } catch(InterruptedException e) {
-            System.out.println("got interrupted!");
+    private void print() {
+        if (sleepTimeMillis != -1) {
+            System.out.println();
+            board.printBoard();
+
+            try {
+                Thread.sleep(sleepTimeMillis);
+            } catch(InterruptedException e) {
+                System.out.println("got interrupted!");
+            }
         }
     }
 }
