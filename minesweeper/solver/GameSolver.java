@@ -1,4 +1,6 @@
-package minesweeper.game;
+package minesweeper.solver;
+
+import minesweeper.game.Game;
 
 public class GameSolver {
     private Game board;
@@ -64,9 +66,9 @@ public class GameSolver {
                 }
 
                 int value = board.getNeighbors(x, y);
-                int undiscovered = getNeighborUndiscovered(x, y);
+                int undiscovered = SolverLib.getNeighborUndiscovered(x, y, board);
 
-                if (!moved && mainAlg(x, y, getMinesLeft(x, y), undiscovered))
+                if (!moved && mainAlg(x, y, SolverLib.getFlagsLeft(x, y, board), undiscovered))
                     moved = true;
 
                 // ONES FLANKING TWO
@@ -81,39 +83,27 @@ public class GameSolver {
         return moved;
     }
 
-    // RETURNS NEIGHBORING FLAGS
-    private int getNeighborFlags(int x, int y) {
-        int output = 0;
+    // MAIN ALGORITHM - RETURNS IF MOVE WAS MADE
+    private boolean mainAlg(int x, int y, int minesLeft, int undiscovered) {
+        boolean uncover = minesLeft == 0 && undiscovered > 0;
+        boolean flag = minesLeft == undiscovered;
+        boolean moved = false;
 
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (board.isFlagged(j, i))
-                    output++;
+        if (uncover || flag) {
+            for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
+                for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
+                    if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
+                        if (uncover && uncover(j, i))
+                            moved = true;
+                        if (flag && flag(j, i))
+                            moved = true;
+                    }
+                }
             }
         }
 
-        return output;
+        return moved;
     }
-
-    // RETURNS UNDISCOVERED AND UNFLAGGED SQUARES NEIGHBORING
-    private int getNeighborUndiscovered(int x, int y) {
-        int output = 0;
-
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (!board.isDiscovered(j, i) && !board.isFlagged(j, i))
-                    output++;
-            }
-        }
-
-        return output;
-    }
-
-    // RETURNS SIGNED VALUE OF SQUARES FLAGGED VS VALUE
-    private int getMinesLeft(int x, int y) {
-        return board.getNeighbors(x, y)-getNeighborFlags(x, y);
-    }
-
 
     // TWO WITH ONES FLANKING PATTERN - RETURNS IF MOVE WAS MADE
     private boolean onesFlankingTwoAlg(int x, int y) {
@@ -175,28 +165,6 @@ public class GameSolver {
         return moved;
     }
 
-    // MAIN ALGORITHM - RETURNS IF MOVE WAS MADE
-    private boolean mainAlg(int x, int y, int minesLeft, int undiscovered) {
-        boolean uncover = minesLeft == 0 && undiscovered > 0;
-        boolean flag = minesLeft == undiscovered;
-        boolean moved = false;
-
-        if (uncover || flag) {
-            for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-                for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                    if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
-                        if (uncover && uncover(j, i))
-                            moved = true;
-                        if (flag && flag(j, i))
-                            moved = true;
-                    }
-                }
-            }
-        }
-
-        return moved;
-    }
-
     // UNCOVERING WRAPPER METHOD - RETURNS IF SQUARE WAS UNCOVERED
     private boolean uncover(int x, int y) {
         wonLost(board.uncoverSquare(x, y, false));
@@ -211,7 +179,7 @@ public class GameSolver {
 
         for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
             for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (board.isDiscovered(j, i) && getMinesLeft(j, i) < 1) {
+                if (board.isDiscovered(j, i) && SolverLib.getFlagsLeft(j, i, board) < 1) {
                     flag = false;
                     break;
                 }
