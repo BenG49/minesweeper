@@ -7,7 +7,7 @@ import minesweeper.solver.GameSolver;
 
 public class Main {
     public static void main(String[] args) {
-        Game g = new Game(Difficulty.DEFAULT);
+        Game g = new Game(Difficulty.MEDIUM);
         // DisplayGame gameDisplay = new DisplayGame(g, "Times New Roman");
         DisplayGame gameDisplay = new DisplayGame(g);
         GameSolver solver = new GameSolver(g, gameDisplay);

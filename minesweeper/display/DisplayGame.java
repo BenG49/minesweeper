@@ -22,7 +22,7 @@ public class DisplayGame extends Display {
     public DisplayGame(Game game) { this(game, "Cascadia Code", 40); }
     public DisplayGame(Game game, String font) { this(game, font, 40); }
     public DisplayGame(Game game, String font, int scale) {
-        super(game.getWidth()*scale, game.getWidth()*scale);
+        super(game.getWidth()*scale, game.getHeight()*scale);
         
         this.game = game;
         this.scale = scale;
@@ -69,6 +69,7 @@ public class DisplayGame extends Display {
                 }
 
                 if (lost) {
+                    // TODO: highlight lost square
                     temp.add(new Text("you lose :(", (int)(WIDTH*0.3), (int)(HEIGHT*0.525), 40, Color.BLUE));
                     /*temp.add(new FillRect(
                         (int)(WIDTH*0.175),

@@ -9,7 +9,7 @@ public class Game {
     public enum Difficulty {
         EASY(10, 10, 10),
         MEDIUM(16, 16, 40),
-        HARD(16, 30, 99),
+        HARD(30, 16, 99),
         // myles' addition
         DEFAULT(MEDIUM);
 

@@ -231,7 +231,7 @@ public class SolverLib {
             yInterval = 2;
         
         for (int y = Math.max(y1-1, 0); y < Math.min(y1+2, game.getHeight()); y+=yInterval) {
-            for (int x = Math.max(x1-1, 0); x < Math.min(x1+2, game.getHeight()); x+=xInterval) {
+            for (int x = Math.max(x1-1, 0); x < Math.min(x1+2, game.getWidth()); x+=xInterval) {
                 /* IF
                 current point is within one tile of coord2 and
                 current point isn't discovered */
