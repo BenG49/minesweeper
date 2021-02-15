@@ -185,6 +185,7 @@ public class SolverLib {
         return tiles;
     }
     
+    // TODO: can return array with nothing in it
     private static List<List<List<Integer>>> getUndiscoveredTileGroups(List<List<List<Integer>>> tiles, Game game) {
         List<List<List<Integer>>> groupsUndiscovered = new ArrayList<List<List<Integer>>>();
         // groups, cells, individual cell
