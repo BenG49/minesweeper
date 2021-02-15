@@ -68,6 +68,46 @@ public class Game {
 
             setBomb(j, i, true);
         }
+        /*setBomb(0, 0, true);
+        setBomb(1, 0, true);
+        setBomb(9, 0, true);
+        setBomb(11, 0, true);
+        setBomb(5, 1, true);
+        setBomb(6, 1, true);
+        setBomb(0, 2, true);
+        setBomb(4, 3, true);
+        setBomb(10, 3, true);
+        setBomb(11, 3, true);
+        setBomb(12, 3, true);
+        setBomb(14, 3, true);
+        setBomb(1, 5, true);
+        setBomb(4, 5, true);
+        setBomb(6, 5, true);
+        setBomb(13, 5, true);
+        setBomb(8, 6, true);
+        setBomb(12, 6, true);
+        setBomb(1, 7, true);
+        setBomb(2, 7, true);
+        setBomb(6, 7, true);
+        setBomb(11, 7, true);
+        setBomb(15, 7, true);
+        setBomb(2, 8, true);
+        setBomb(8, 8, true);
+        setBomb(10, 8, true);
+        setBomb(8, 9, true);
+        setBomb(11, 9, true);
+        setBomb(4, 10, true);
+        setBomb(13, 11, true);
+        setBomb(3, 12, true);
+        setBomb(14, 12, true);
+        setBomb(2, 13, true);
+        setBomb(1, 14, true);
+        setBomb(4, 14, true);
+        setBomb(9, 14, true);
+        setBomb(12, 14, true);
+        setBomb(3, 15, true);
+        setBomb(6, 15, true);
+        setBomb(14, 15, true);*/
 
         // make starting island
         for (;;) {
@@ -78,7 +118,7 @@ public class Game {
                 break;
         }
 
-        uncoverSquare(j, i, false);
+        uncoverTile(j, i, false);
     }
 
     public int getWidth() { return mines[0].length; }
@@ -106,7 +146,7 @@ public class Game {
 
     // returns 1 if lose, 2 if win, 0 otherwise
     private List<List<Integer>> toUncover = new ArrayList<List<Integer>>();
-    public int uncoverSquare(int x, int y, boolean throughRecursion) {
+    public int uncoverTile(int x, int y, boolean throughRecursion) {
         // game over
         if (isBomb(x, y)) {
             System.out.println(x+", "+y+" - game over :sad:");
@@ -128,7 +168,7 @@ public class Game {
             for (int i = Math.max(y - 1, 0); i < Math.min(y + 2, getHeight()); i++) {
                 for (int j = Math.max(x - 1, 0); j < Math.min(x + 2, getWidth()); j++) {
                     if (!isDiscovered(j, i) && !isBomb(j, i) && !toUncover.contains(Arrays.asList(j, i))) {
-                        uncoverSquare(j, i, true);
+                        uncoverTile(j, i, true);
                     }
                 }
             }
@@ -162,7 +202,7 @@ public class Game {
         }
     }
 
-    public void flagSquare(int x, int y) {
+    public void flagTile(int x, int y) {
         if (isFlagged(x, y))
             mines[y][x].setFlagged(false);
         else

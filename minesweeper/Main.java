@@ -9,6 +9,6 @@ public class Main {
         Game g = new Game(Difficulty.DEFAULT);
         GameSolver solver = new GameSolver(g);
 
-        solver.run(5, 300);
+        solver.run(5, 5);
     }
 }

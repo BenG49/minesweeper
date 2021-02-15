@@ -1,5 +1,7 @@
 package minesweeper.solver;
 
+import java.util.List;
+
 import minesweeper.game.Game;
 
 public class GameSolver {
@@ -78,6 +80,36 @@ public class GameSolver {
         }
 
         if (!moved) {
+            int targetX = 0, targetY = 0;
+            for (int y = 0; y < board.getHeight(); y++) {
+                for (int x = 0; x < board.getWidth(); x++) {
+                    /* IF:
+                        value is zero
+                        undiscovered
+                        flagged
+                        value is zero (add to zero list) */
+                    if (zeroes[y][x] || !board.isDiscovered(x, y) || board.isFlagged(x, y) || board.getNeighbors(x, y) == 0) {
+                        if (board.getNeighbors(x, y) == 0)
+                            zeroes[y][x] = true;
+                        continue;
+                    }
+
+                    if (SolverLib.getFlagsLeft(x, y, board) == 1 &&
+                        SolverLib.getNeighborUndiscovered(x, y, board) == 2) {
+                        targetX = x;
+                        targetY = y;
+                    }
+                }
+            }
+
+            List<List<Integer>> bombs = SolverLib.getCombination(targetX, targetY, board);
+            System.out.println(targetX+", "+targetY+", "+bombs);
+            
+            for (int i = 0; i < bombs.size(); i++) {
+                if (flag(bombs.get(i).get(0), bombs.get(i).get(1)))
+                    moved = true;
+            }
+            // TODO: fix bugs and make it so loop will choose another square if still not moved after guessing
         }
 
         return moved;
@@ -165,9 +197,9 @@ public class GameSolver {
         return moved;
     }
 
-    // UNCOVERING WRAPPER METHOD - RETURNS IF SQUARE WAS UNCOVERED
+    // UNCOVERING WRAPPER METHOD - RETURNS IF TILE WAS UNCOVERED
     private boolean uncover(int x, int y) {
-        wonLost(board.uncoverSquare(x, y, false));
+        wonLost(board.uncoverTile(x, y, false));
         print();
 
         return true;
@@ -187,7 +219,7 @@ public class GameSolver {
         }
 
         if (flag) {
-            board.flagSquare(x, y);
+            board.flagTile(x, y);
             print();
         }
 
