@@ -68,46 +68,6 @@ public class Game {
 
             setBomb(j, i, true);
         }
-        /*setBomb(0, 0, true);
-        setBomb(1, 0, true);
-        setBomb(9, 0, true);
-        setBomb(11, 0, true);
-        setBomb(5, 1, true);
-        setBomb(6, 1, true);
-        setBomb(0, 2, true);
-        setBomb(4, 3, true);
-        setBomb(10, 3, true);
-        setBomb(11, 3, true);
-        setBomb(12, 3, true);
-        setBomb(14, 3, true);
-        setBomb(1, 5, true);
-        setBomb(4, 5, true);
-        setBomb(6, 5, true);
-        setBomb(13, 5, true);
-        setBomb(8, 6, true);
-        setBomb(12, 6, true);
-        setBomb(1, 7, true);
-        setBomb(2, 7, true);
-        setBomb(6, 7, true);
-        setBomb(11, 7, true);
-        setBomb(15, 7, true);
-        setBomb(2, 8, true);
-        setBomb(8, 8, true);
-        setBomb(10, 8, true);
-        setBomb(8, 9, true);
-        setBomb(11, 9, true);
-        setBomb(4, 10, true);
-        setBomb(13, 11, true);
-        setBomb(3, 12, true);
-        setBomb(14, 12, true);
-        setBomb(2, 13, true);
-        setBomb(1, 14, true);
-        setBomb(4, 14, true);
-        setBomb(9, 14, true);
-        setBomb(12, 14, true);
-        setBomb(3, 15, true);
-        setBomb(6, 15, true);
-        setBomb(14, 15, true);*/
 
         // make starting island
         for (;;) {

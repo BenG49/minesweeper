@@ -2,27 +2,30 @@ package minesweeper.solver;
 
 import java.util.List;
 
+import minesweeper.display.DisplayGame;
 import minesweeper.game.Game;
 
 public class GameSolver {
-    private Game board;
+    private Game game;
     private boolean[][] zeroes;
     private int sleepTimeMillis;
+    private DisplayGame d;
 
     public boolean won, lost;
 
-    public GameSolver(Game board) {
-        this.board = board;
+    public GameSolver(Game game, DisplayGame d) {
+        this.game = game;
+        this.d = d;
 
         won = false;
         lost = false;
         sleepTimeMillis = -1;
 
-        zeroes = new boolean[board.getHeight()][board.getWidth()];
-        for (int y = 0; y < board.getHeight(); y++) {
-            for (int x = 0; x < board.getWidth(); x++) {
-                if (board.isDiscovered(x, y)) {
-                    if (board.getNeighbors(x, y) == 0)
+        zeroes = new boolean[game.getHeight()][game.getWidth()];
+        for (int y = 0; y < game.getHeight(); y++) {
+            for (int x = 0; x < game.getWidth(); x++) {
+                if (game.isDiscovered(x, y)) {
+                    if (game.getNeighbors(x, y) == 0)
                         zeroes[y][x] = true;
                 }
             }
@@ -41,12 +44,8 @@ public class GameSolver {
                 noMovementCount = 0;
 
             if (noMovementCount > consecutiveNonMovement) {
-                System.out.println("\nStuck :(\n");
                 moved = false;
             }
-
-            if (won)
-                System.out.println("\nWon!\n");
         }
     }
 
@@ -54,23 +53,23 @@ public class GameSolver {
     public boolean execute() {
         boolean moved = false;
 
-        for (int y = 0; y < board.getHeight(); y++) {
-            for (int x = 0; x < board.getWidth(); x++) {
+        for (int y = 0; y < game.getHeight(); y++) {
+            for (int x = 0; x < game.getWidth(); x++) {
                 /* IF:
                     value is zero
                     undiscovered
                     flagged
                     value is zero (add to zero list) */
-                if (zeroes[y][x] || !board.isDiscovered(x, y) || board.isFlagged(x, y) || board.getNeighbors(x, y) == 0) {
-                    if (board.getNeighbors(x, y) == 0)
+                if (zeroes[y][x] || !game.isDiscovered(x, y) || game.isFlagged(x, y) || game.getNeighbors(x, y) == 0) {
+                    if (game.getNeighbors(x, y) == 0)
                         zeroes[y][x] = true;
                     continue;
                 }
 
-                int value = board.getNeighbors(x, y);
-                int undiscovered = SolverLib.getNeighborUndiscovered(x, y, board);
+                int value = game.getNeighbors(x, y);
+                int undiscovered = SolverLib.getNeighborUndiscovered(x, y, game);
 
-                if (!moved && mainAlg(x, y, SolverLib.getFlagsLeft(x, y, board), undiscovered))
+                if (!moved && mainAlg(x, y, SolverLib.getFlagsLeft(x, y, game), undiscovered))
                     moved = true;
 
                 // ONES FLANKING TWO
@@ -81,28 +80,27 @@ public class GameSolver {
 
         if (!moved) {
             int targetX = 0, targetY = 0;
-            for (int y = 0; y < board.getHeight(); y++) {
-                for (int x = 0; x < board.getWidth(); x++) {
+            for (int y = 0; y < game.getHeight(); y++) {
+                for (int x = 0; x < game.getWidth(); x++) {
                     /* IF:
                         value is zero
                         undiscovered
                         flagged
                         value is zero (add to zero list) */
-                    if (zeroes[y][x] || !board.isDiscovered(x, y) || board.isFlagged(x, y) || board.getNeighbors(x, y) == 0) {
-                        if (board.getNeighbors(x, y) == 0)
+                    if (zeroes[y][x] || !game.isDiscovered(x, y) || game.isFlagged(x, y) || game.getNeighbors(x, y) == 0) {
+                        if (game.getNeighbors(x, y) == 0)
                             zeroes[y][x] = true;
                         continue;
                     }
 
-                    if (SolverLib.getFlagsLeft(x, y, board) == 1 &&
-                        SolverLib.getNeighborUndiscovered(x, y, board) == 2) {
+                    if (SolverLib.getFlagsLeft(x, y, game) > 0/*&& x, y isnt in array of bad guesses*/) {
                         targetX = x;
                         targetY = y;
                     }
                 }
             }
 
-            List<List<Integer>> bombs = SolverLib.getCombination(targetX, targetY, board);
+            List<List<Integer>> bombs = SolverLib.getCombination(targetX, targetY, game);
             System.out.println(targetX+", "+targetY+", "+bombs);
             
             for (int i = 0; i < bombs.size(); i++) {
@@ -110,6 +108,7 @@ public class GameSolver {
                     moved = true;
             }
             // TODO: fix bugs and make it so loop will choose another square if still not moved after guessing
+            // NOTE: can fill game but have wrong amount of bombs
         }
 
         return moved;
@@ -122,9 +121,9 @@ public class GameSolver {
         boolean moved = false;
 
         if (uncover || flag) {
-            for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-                for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                    if (!board.isDiscovered(j, i) && !board.isFlagged(j, i)) {
+            for (int i = Math.max(y-1, 0); i < Math.min(y+2, game.getHeight()); i++) {
+                for (int j = Math.max(x-1, 0); j < Math.min(x+2, game.getWidth()); j++) {
+                    if (!game.isDiscovered(j, i) && !game.isFlagged(j, i)) {
                         if (uncover && uncover(j, i))
                             moved = true;
                         if (flag && flag(j, i))
@@ -143,11 +142,11 @@ public class GameSolver {
         boolean moved = false;
 
         // horizontally flanking
-        if (x > 0 && x < board.getWidth()-1 && board.getNeighbors(x-1, y) == 1 && board.getNeighbors(x+1, y) == 1)
+        if (x > 0 && x < game.getWidth()-1 && game.getNeighbors(x-1, y) == 1 && game.getNeighbors(x+1, y) == 1)
             orientation = 1;
 
         // vertically flanking
-        else if (y > 0 && y < board.getHeight()-1 && board.getNeighbors(x, y-1) == 1 && board.getNeighbors(x, y+1) == 1)
+        else if (y > 0 && y < game.getHeight()-1 && game.getNeighbors(x, y-1) == 1 && game.getNeighbors(x, y+1) == 1)
             orientation = 2;
 
         if (orientation != 0) {
@@ -155,39 +154,39 @@ public class GameSolver {
 
             if (orientation == 1) {
                 var = y;
-                maxVar = board.getHeight()-1;
+                maxVar = game.getHeight()-1;
                 xOffset = 0;
                 yOffset = 1;
             } else {// orientation = 2
                 var = x;
-                maxVar = board.getWidth()-1;
+                maxVar = game.getWidth()-1;
                 xOffset = 1;
                 yOffset = 0;
             }
 
             // positive direction
-            if (var < maxVar && !board.isDiscovered(x+xOffset, y+yOffset)) {
+            if (var < maxVar && !game.isDiscovered(x+xOffset, y+yOffset)) {
                 if (!moved && uncover(x+xOffset, y+yOffset))
                     moved = true;
-                if (!board.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset)) {
+                if (!game.isFlagged(x+xOffset-yOffset, y-xOffset+yOffset)) {
                     if(flag(x+xOffset-yOffset, y-xOffset+yOffset))
                         moved = true;
                 }
-                if (!board.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset)) {
+                if (!game.isFlagged(x+xOffset+yOffset, y+xOffset+yOffset)) {
                     if (flag(x+xOffset+yOffset, y+xOffset+yOffset))
                         moved = true;
                 }
             }
 
             // negative direction
-            if (var != 0 && !board.isDiscovered(x-xOffset, y-yOffset)) {
+            if (var != 0 && !game.isDiscovered(x-xOffset, y-yOffset)) {
                 if(uncover(x-xOffset, y-yOffset))
                     moved = true;
-                if (!board.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset)) {
+                if (!game.isFlagged(x-xOffset-yOffset, y-xOffset-yOffset)) {
                     if (flag(x-xOffset-yOffset, y-xOffset-yOffset))
                         moved = true;
                 }
-                if (!board.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset)) {
+                if (!game.isFlagged(x-xOffset+yOffset, y+xOffset-yOffset)) {
                     if (flag(x-xOffset+yOffset, y+xOffset-yOffset))
                         moved = true;
                 }
@@ -199,7 +198,7 @@ public class GameSolver {
 
     // UNCOVERING WRAPPER METHOD - RETURNS IF TILE WAS UNCOVERED
     private boolean uncover(int x, int y) {
-        wonLost(board.uncoverTile(x, y, false));
+        wonLost(game.uncoverTile(x, y, false));
         print();
 
         return true;
@@ -209,9 +208,9 @@ public class GameSolver {
     private boolean flag(int x, int y) {
         boolean flag = true;
 
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, board.getHeight()); i++) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, board.getWidth()); j++) {
-                if (board.isDiscovered(j, i) && SolverLib.getFlagsLeft(j, i, board) < 1) {
+        for (int i = Math.max(y-1, 0); i < Math.min(y+2, game.getHeight()); i++) {
+            for (int j = Math.max(x-1, 0); j < Math.min(x+2, game.getWidth()); j++) {
+                if (game.isDiscovered(j, i) && SolverLib.getFlagsLeft(j, i, game) < 1) {
                     flag = false;
                     break;
                 }
@@ -219,7 +218,7 @@ public class GameSolver {
         }
 
         if (flag) {
-            board.flagTile(x, y);
+            game.flagTile(x, y);
             print();
         }
 
@@ -227,22 +226,22 @@ public class GameSolver {
     }
 
     private void wonLost(int i) {
-        if (i == 1)
+        if (i == 1) {
             lost = true;
-        else if (i == 2)
+            d.setLost(true);
+        } else if (i == 2) {
             won = true;
+            d.setWon(true);
+        }
     }
 
     private void print() {
         if (sleepTimeMillis != -1) {
-            System.out.println();
-            board.printBoard();
+            d.drawGame();
 
             try {
                 Thread.sleep(sleepTimeMillis);
-            } catch(InterruptedException e) {
-                System.out.println("got interrupted!");
-            }
+            } catch(InterruptedException e) {}
         }
     }
 }
