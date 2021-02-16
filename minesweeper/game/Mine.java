@@ -2,11 +2,13 @@ package minesweeper.game;
 
 public class Mine {
     private boolean bomb, flagged, discovered;
+    private int value;
 
     public Mine() {
         bomb = false;
         flagged = false;
         discovered = false;
+        value = 10;
     }
 
     public boolean isBomb() {
@@ -21,6 +23,10 @@ public class Mine {
         return discovered;
     }
 
+    public int getValue() {
+        return value;
+    }
+
     public void setBomb(boolean bomb) {
         this.bomb = bomb;
     }
@@ -31,5 +37,9 @@ public class Mine {
 
     public void setDiscovered(boolean discovered) {
         this.discovered = discovered;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 }

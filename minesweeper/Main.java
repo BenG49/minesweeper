@@ -12,6 +12,6 @@ public class Main {
         DisplayGame gameDisplay = new DisplayGame(g);
         GameSolver solver = new GameSolver(g, gameDisplay);
 
-        solver.run(3, 50);
+        solver.run(3, 5);
     }
 }

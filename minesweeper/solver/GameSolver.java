@@ -1,5 +1,7 @@
 package minesweeper.solver;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import minesweeper.display.DisplayGame;
@@ -7,9 +9,10 @@ import minesweeper.game.Game;
 
 public class GameSolver {
     private Game game;
+    private DisplayGame d;
     private boolean[][] zeroes;
     private int sleepTimeMillis;
-    private DisplayGame d;
+    private List<List<Integer>> badGuesses;
 
     public boolean won, lost;
 
@@ -20,6 +23,7 @@ public class GameSolver {
         won = false;
         lost = false;
         sleepTimeMillis = -1;
+        badGuesses = new ArrayList<List<Integer>>();
 
         zeroes = new boolean[game.getHeight()][game.getWidth()];
         for (int y = 0; y < game.getHeight(); y++) {
@@ -36,7 +40,9 @@ public class GameSolver {
         boolean moved = true;
         int noMovementCount = 0;
         this.sleepTimeMillis = sleepTimeMillis;
+        consecutiveNonMovement--;
 
+        print();
         while(!won && !lost && moved) {
             if (!execute())
                 noMovementCount++;
@@ -45,6 +51,7 @@ public class GameSolver {
 
             if (noMovementCount > consecutiveNonMovement) {
                 moved = false;
+                System.out.println("Stuck");
             }
         }
     }
@@ -78,8 +85,9 @@ public class GameSolver {
             }
         }
 
-        if (!moved) {
-            int targetX = 0, targetY = 0;
+        // if stuck
+        if (!moved && !game.checkGameWin()) {
+            int targetX = 0, targetY = 0, undiscoveredCount = 0;
             for (int y = 0; y < game.getHeight(); y++) {
                 for (int x = 0; x < game.getWidth(); x++) {
                     /* IF:
@@ -90,25 +98,41 @@ public class GameSolver {
                     if (zeroes[y][x] || !game.isDiscovered(x, y) || game.isFlagged(x, y) || game.getNeighbors(x, y) == 0) {
                         if (game.getNeighbors(x, y) == 0)
                             zeroes[y][x] = true;
+                        if (!game.isDiscovered(x, y) && !game.isFlagged(x, y))
+                            undiscoveredCount++;
                         continue;
                     }
 
-                    if (SolverLib.getFlagsLeft(x, y, game) > 0/*&& x, y isnt in array of bad guesses*/) {
+                    // if square isn't fulfilled and isn't in list of bad guesses
+                    if (SolverLib.getFlagsLeft(x, y, game) > 0 && !badGuesses.contains(Arrays.asList(x, y))) {
                         targetX = x;
                         targetY = y;
                     }
                 }
             }
 
-            List<List<Integer>> bombs = SolverLib.getCombination(targetX, targetY, game);
-            System.out.println(targetX+", "+targetY+", "+bombs);
+            // if there's only one square left, not adjacent to any others
+            if (undiscoveredCount == 1) {
+                for (int y = 0; y < game.getHeight(); y++) {
+                    for (int x = 0; x < game.getWidth(); x++) {
+                        if (game.isDiscovered(x, y))
+                            continue;
+                        
+                        game.uncoverTile(x, y, false);
+                    }
+                }
+            // don't call getCombination if board is full
+            } else if (undiscoveredCount > 0) {
+                List<List<Integer>> bombs = SolverLib.getCombination(targetX, targetY, game);
             
-            for (int i = 0; i < bombs.size(); i++) {
-                if (flag(bombs.get(i).get(0), bombs.get(i).get(1)))
-                    moved = true;
+                for (int i = 0; i < bombs.size(); i++) {
+                    if (flag(bombs.get(i).get(0), bombs.get(i).get(1)))
+                        moved = true;
+                }
+
+                if (!moved)
+                    badGuesses.add(Arrays.asList(targetX, targetY));
             }
-            // TODO: fix bugs and make it so loop will choose another square if still not moved after guessing
-            // NOTE: can fill game but have wrong amount of bombs
         }
 
         return moved;

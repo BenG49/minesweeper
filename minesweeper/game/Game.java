@@ -190,16 +190,23 @@ public class Game {
     }
 
     private int getNeighborsPrivate(int x, int y) {
-        int output = 0;
+        // optimization probably
+        int temp = mines[y][x].getValue();
+        if (temp < 10)
+            return temp;
+        else {
+            int output = 0;
 
-        for (int i = Math.max(y-1, 0); i < Math.min(y+2, getHeight()); i++) {
-            for (int j = Math.max(x-1, 0); j < Math.min(x+2, getWidth()); j++) {
-                if (isBomb(j, i)) {
-                    output++;
+            for (int i = Math.max(y-1, 0); i < Math.min(y+2, getHeight()); i++) {
+                for (int j = Math.max(x-1, 0); j < Math.min(x+2, getWidth()); j++) {
+                    if (isBomb(j, i)) {
+                        output++;
+                    }
                 }
             }
-        }
 
-        return output;
+            mines[y][x].setValue(output);
+            return output;
+        }
     }
 }
