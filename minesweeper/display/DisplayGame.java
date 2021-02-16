@@ -1,18 +1,22 @@
 package minesweeper.display;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
 
 import minesweeper.display.shapes.*;
 import minesweeper.game.Game;
+import minesweeper.input.InputDisplay;
 
-public class DisplayGame extends Display {
+public class DisplayGame extends InputDisplay {
     private Game game;
     private boolean won, lost, stuck;
-    private String font;
 
+    private final String font;
     private final int scale;
+    private final Font gameFont;
+    private final Font titleFont;
 
     // CONSTANTS
     private final double FONT_X_MULT = 0.35;
@@ -31,6 +35,9 @@ public class DisplayGame extends Display {
         won = false;
         lost = false;
         stuck = false;
+
+        gameFont = new Font(font, Font.PLAIN, scale/2);
+        titleFont = new Font(font, Font.BOLD, 30);
     }
 
     public void drawGame() {
@@ -42,27 +49,32 @@ public class DisplayGame extends Display {
 
                 if (game.getNeighbors(x, y) != -1)
                     shapes.add(new Text(Integer.toString(game.getNeighbors(x, y)), scale*x+(int)(scale*FONT_X_MULT),
-                        scale*y+(int)(scale*FONT_Y_MULT), scale/2, getColor(game.getNeighbors(x, y)), font, false));
+                        scale*y+(int)(scale*FONT_Y_MULT), getColor(game.getNeighbors(x, y)), gameFont));
                     
                 if (game.isFlagged(x, y))
-                    shapes.add(new Text( "F", scale*x+(int)(scale*FONT_X_MULT),
-                        scale*y+(int)(scale*FONT_Y_MULT), scale/2, FLAG_COLOR, font, false));
+                    shapes.add(new Text( "F", scale*x+(int)(scale*FONT_X_MULT), scale*y+(int)(scale*FONT_Y_MULT),
+                        FLAG_COLOR, new Font(font, Font.PLAIN, scale/2)));
 
                 if (lost && game.getLostPos()[0] == x && game.getLostPos()[1] == y)
                     shapes.add(new FillRect(scale*x, scale*y, scale, scale, 1, new Color(1f, 0f, 0f, 0.5f)));
             }
         }
                 
-        if (won) 
-            shapes = drawTextCenter("YOU WON!!1!1!", 40, Color.BLACK, shapes);
+        if (won || lost || stuck) {
+            if (won) 
+                shapes = drawTextCenter("YOU WON!!1!1!", 40, Color.BLACK, shapes);
 
-        if (lost) {
-            shapes = drawTextCenter("you lose :(", 40, Color.BLUE, shapes);
-            // TODO: highlight lost square
+            if (lost)
+                shapes = drawTextCenter("you lose :(", 40, Color.BLUE, shapes);
+
+            if (stuck) 
+                shapes = drawTextCenter("got stuck :(", 40, Color.RED, shapes);
+            
+            shapes.add(new Text("Press enter to sim again", (int) (WIDTH*0.15), (int) (HEIGHT*0.62),
+                Color.DARK_GRAY, titleFont));
+            shapes.add(new Text("press q to quit", (int) (WIDTH*0.275), (int) (HEIGHT*0.685),
+                Color.DARK_GRAY, titleFont));
         }
-
-        if (stuck) 
-            shapes = drawTextCenter("got stuck :(", 40, Color.RED, shapes);
 
         Shape[] output = new Shape[shapes.size()];
         for (int i = 0; i < output.length; i++)
@@ -106,7 +118,7 @@ public class DisplayGame extends Display {
 
     private List<Shape> drawTextCenter(String text, int size, Color color, List<Shape> shapes) {
         final float BOX_PADDING = 1.5f;
-        final Color FILL_COLOR = new Color(0f, 0f, 0f, 0.1f);
+        final Color FILL_COLOR = new Color(0f, 0f, 0f, 1f);
 
         final float TXT_WIDTH_MULT;
         final float TXT_HEIGHT_MULT;
@@ -135,17 +147,12 @@ public class DisplayGame extends Display {
 
         // add text
         shapes.add(new Text(text, (int)((WIDTH-txtWidth)/2), (int)((WIDTH-txtHeight)/2+txtHeight*TXT_HEIGHT_CONST),
-            size, color, font, true));
+            color, new Font(font, Font.BOLD, size)));
 
-        // add border box
-        shapes.add(new Rect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
-            (int)(txtWidth*BOX_PADDING), (int)(txtHeight*BOX_PADDING), 4, Color.BLACK));
-
-        // add fill box
+        // add fill box - NOT WORKING
         shapes.add(new FillRect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
             (int)(txtWidth*BOX_PADDING), (int)(txtHeight*BOX_PADDING), 4, FILL_COLOR));
 
         return shapes;
     }
-
 }

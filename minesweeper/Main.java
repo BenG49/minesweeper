@@ -7,11 +7,26 @@ import minesweeper.solver.GameSolver;
 
 public class Main {
     public static void main(String[] args) {
-        Game g = new Game(Difficulty.MEDIUM);
-        // DisplayGame gameDisplay = new DisplayGame(g, "Times New Roman");
-        DisplayGame gameDisplay = new DisplayGame(g);
-        GameSolver solver = new GameSolver(g, gameDisplay);
+        boolean cont = true;
 
-        solver.run(3, 5);
+        while(cont) {
+            cont = false;
+
+            Game g = new Game(Difficulty.MEDIUM);
+            // DisplayGame gameDisplay = new DisplayGame(g, "Times New Roman");
+            DisplayGame gameDisplay = new DisplayGame(g);
+            GameSolver solver = new GameSolver(g, gameDisplay);
+
+            solver.run(3, 100);
+
+            while(!cont) {
+                if (gameDisplay.hasKey("Enter"))
+                    cont = true;
+                else if (gameDisplay.hasKey("q") || gameDisplay.hasKey("Q"))
+                    break;
+            }
+
+            gameDisplay.dispose();
+        }
     }
 }

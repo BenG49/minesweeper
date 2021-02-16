@@ -1,7 +1,5 @@
 package minesweeper.display.shapes;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.awt.Color;
 import java.awt.*;
 
