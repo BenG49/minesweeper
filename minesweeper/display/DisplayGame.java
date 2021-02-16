@@ -9,7 +9,7 @@ import minesweeper.game.Game;
 
 public class DisplayGame extends Display {
     private Game game;
-    private boolean won, lost;
+    private boolean won, lost, stuck;
     private String font;
 
     private final int scale;
@@ -30,6 +30,7 @@ public class DisplayGame extends Display {
 
         won = false;
         lost = false;
+        stuck = false;
     }
 
     public void drawGame() {
@@ -58,27 +59,57 @@ public class DisplayGame extends Display {
                 
                 if (won) {
                     temp.add(new Text("YOU WON!!11!!", (int)(WIDTH*0.275), (int)(HEIGHT*0.525), 40, Color.BLACK));
-                    /*temp.add(new FillRect(
+                    temp.add(new Rect(
                         (int)(WIDTH*0.15),
                         (int)(HEIGHT*0.4),
                         (int)(WIDTH*0.7),
                         (int)(HEIGHT*0.2),
-                        2,
-                        new Color(0f, 0f, 0f, 0.1f)
-                    ));*/
+                        4, Color.BLACK
+                    ));
+                    temp.add(new FillRect(
+                        (int)(WIDTH*0.15),
+                        (int)(HEIGHT*0.4),
+                        (int)(WIDTH*0.7),
+                        (int)(HEIGHT*0.2),
+                        2, new Color(1f, 1f, 1f, 0.1f)
+                    ));
                 }
 
                 if (lost) {
                     // TODO: highlight lost square
                     temp.add(new Text("you lose :(", (int)(WIDTH*0.3), (int)(HEIGHT*0.525), 40, Color.BLUE));
-                    /*temp.add(new FillRect(
+                    temp.add(new Rect(
                         (int)(WIDTH*0.175),
                         (int)(HEIGHT*0.4),
                         (int)(WIDTH*0.65),
                         (int)(HEIGHT*0.2),
-                        2,
-                        new Color(0f, 0f, 0f, 0.1f)
-                    ));*/
+                        4, Color.BLACK
+                    ));
+                    temp.add(new FillRect(
+                        (int)(WIDTH*0.175),
+                        (int)(HEIGHT*0.4),
+                        (int)(WIDTH*0.65),
+                        (int)(HEIGHT*0.2),
+                        2, new Color(1f, 1f, 1f, 0.1f)
+                    ));
+                }
+
+                if (stuck) {
+                    temp.add(new Text("got stuck :(", (int)(WIDTH*0.275), (int)(HEIGHT*0.525), 40, Color.BLUE));
+                    temp.add(new Rect(
+                        (int)(WIDTH*0.175),
+                        (int)(HEIGHT*0.4),
+                        (int)(WIDTH*0.65),
+                        (int)(HEIGHT*0.2),
+                        4, Color.BLACK
+                    ));
+                    temp.add(new FillRect(
+                        (int)(WIDTH*0.175),
+                        (int)(HEIGHT*0.4),
+                        (int)(WIDTH*0.65),
+                        (int)(HEIGHT*0.2),
+                        2, new Color(1f, 1f, 1f, 0.1f)
+                    ));
                 }
             }
         }
@@ -117,5 +148,9 @@ public class DisplayGame extends Display {
 
     public void setLost(boolean lost) {
         this.lost = lost;
+    }
+
+    public void setStuck(boolean stuck) {
+        this.stuck = stuck;
     }
 }

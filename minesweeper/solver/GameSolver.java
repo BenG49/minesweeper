@@ -51,7 +51,8 @@ public class GameSolver {
 
             if (noMovementCount > consecutiveNonMovement) {
                 moved = false;
-                System.out.println("Stuck");
+                d.setStuck(true);
+                print();
             }
         }
     }
@@ -132,7 +133,9 @@ public class GameSolver {
 
                 if (!moved)
                     badGuesses.add(Arrays.asList(targetX, targetY));
-            }
+            } else
+                // if mistake was made in guessing earlier and board is full but amount of bombs hasn't been reached
+                return false;
         }
 
         return moved;
