@@ -89,6 +89,8 @@ public class GameSolver {
         // if stuck
         if (!moved && !game.checkGameWin()) {
             int targetX = 0, targetY = 0, undiscoveredCount = 0;
+            boolean hasAdjacent = false;
+
             for (int y = 0; y < game.getHeight(); y++) {
                 for (int x = 0; x < game.getWidth(); x++) {
                     /* IF:
@@ -101,6 +103,17 @@ public class GameSolver {
                             zeroes[y][x] = true;
                         if (!game.isDiscovered(x, y) && !game.isFlagged(x, y))
                             undiscoveredCount++;
+                        if (!hasAdjacent) {
+                            hasAdjacent:
+                            for (int i = Math.max(y-1, 0); i < Math.min(y+2, game.getHeight()); i++) {
+                                for (int j = Math.max(x-1, 0); j < Math.min(x+2, game.getWidth()); j++) {
+                                    if (game.isDiscovered(j, i)) {
+                                        hasAdjacent = true;
+                                        break hasAdjacent;
+                                    }
+                                }
+                            }
+                        }
                         continue;
                     }
 
@@ -112,18 +125,19 @@ public class GameSolver {
                 }
             }
 
-            // if there's only one square left, not adjacent to any others
-            if (undiscoveredCount == 1) {
+            // if there are a few squares left, not adjacent to any others
+            if (!hasAdjacent) {
                 for (int y = 0; y < game.getHeight(); y++) {
                     for (int x = 0; x < game.getWidth(); x++) {
                         if (game.isDiscovered(x, y))
                             continue;
                         
-                        game.uncoverTile(x, y, false);
+                        uncover(x, y);
                     }
                 }
             // don't call getCombination if board is full
             } else if (undiscoveredCount > 0) {
+
                 List<List<Integer>> bombs = SolverLib.getCombination(targetX, targetY, game);
             
                 for (int i = 0; i < bombs.size(); i++) {

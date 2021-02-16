@@ -34,13 +34,13 @@ public class DisplayGame extends Display {
     }
 
     public void drawGame() {
-        List<Shape> temp = new ArrayList<Shape>();
+        List<Shape> shapes = new ArrayList<Shape>();
 
         for (int y = 0; y < game.getHeight(); y++) {
             for (int x = 0; x < game.getWidth(); x++) {
-                temp.add(new Rect(scale*x, scale*y, scale, scale, 2, Color.BLACK));
+                shapes.add(new Rect(scale*x, scale*y, scale, scale, 2, Color.BLACK));
                 if (game.getNeighbors(x, y) != -1)
-                    temp.add(new Text(
+                    shapes.add(new Text(
                         Integer.toString(game.getNeighbors(x, y)),
                         scale*x+(int)(scale*FONT_X_MULT),
                         scale*y+(int)(scale*FONT_Y_MULT),
@@ -49,74 +49,32 @@ public class DisplayGame extends Display {
                     ));
                     
                 if (game.isFlagged(x, y))
-                    temp.add(new Text(
+                    shapes.add(new Text(
                         "F",
                         scale*x+(int)(scale*FONT_X_MULT),
                         scale*y+(int)(scale*FONT_Y_MULT),
                         scale/2,
                         FLAG_COLOR
                     ));
-                
-                if (won) {
-                    temp.add(new Text("YOU WON!!11!!", (int)(WIDTH*0.275), (int)(HEIGHT*0.525), 40, Color.BLACK));
-                    temp.add(new Rect(
-                        (int)(WIDTH*0.15),
-                        (int)(HEIGHT*0.4),
-                        (int)(WIDTH*0.7),
-                        (int)(HEIGHT*0.2),
-                        4, Color.BLACK
-                    ));
-                    temp.add(new FillRect(
-                        (int)(WIDTH*0.15),
-                        (int)(HEIGHT*0.4),
-                        (int)(WIDTH*0.7),
-                        (int)(HEIGHT*0.2),
-                        2, new Color(1f, 1f, 1f, 0.1f)
-                    ));
-                }
-
-                if (lost) {
-                    // TODO: highlight lost square
-                    temp.add(new Text("you lose :(", (int)(WIDTH*0.3), (int)(HEIGHT*0.525), 40, Color.BLUE));
-                    temp.add(new Rect(
-                        (int)(WIDTH*0.175),
-                        (int)(HEIGHT*0.4),
-                        (int)(WIDTH*0.65),
-                        (int)(HEIGHT*0.2),
-                        4, Color.BLACK
-                    ));
-                    temp.add(new FillRect(
-                        (int)(WIDTH*0.175),
-                        (int)(HEIGHT*0.4),
-                        (int)(WIDTH*0.65),
-                        (int)(HEIGHT*0.2),
-                        2, new Color(1f, 1f, 1f, 0.1f)
-                    ));
-                }
-
-                if (stuck) {
-                    temp.add(new Text("got stuck :(", (int)(WIDTH*0.275), (int)(HEIGHT*0.525), 40, Color.BLUE));
-                    temp.add(new Rect(
-                        (int)(WIDTH*0.175),
-                        (int)(HEIGHT*0.4),
-                        (int)(WIDTH*0.65),
-                        (int)(HEIGHT*0.2),
-                        4, Color.BLACK
-                    ));
-                    temp.add(new FillRect(
-                        (int)(WIDTH*0.175),
-                        (int)(HEIGHT*0.4),
-                        (int)(WIDTH*0.65),
-                        (int)(HEIGHT*0.2),
-                        2, new Color(1f, 1f, 1f, 0.1f)
-                    ));
-                }
+                if (lost && game.getLostPos()[0] == x && game.getLostPos()[1] == y)
+                    shapes.add(new FillRect(scale*x, scale*y, scale, scale, 1, new Color(1f, 0f, 0f, 0.5f)));
             }
         }
+                
+        if (won) 
+            shapes = drawTextCenter("YOU WON!!1!1!", 40, Color.BLACK, shapes);
 
-        Shape[] output = new Shape[temp.size()];
+        if (lost) {
+            shapes = drawTextCenter("you lose :(", 40, Color.BLUE, shapes);
+            // TODO: highlight lost square
+        }
+
+        if (stuck) 
+            shapes = drawTextCenter("got stuck :(", 40, Color.RED, shapes);
+
+        Shape[] output = new Shape[shapes.size()];
         for (int i = 0; i < output.length; i++)
-            output[i] = temp.get(i);
+            output[i] = shapes.get(i);
 
         draw(output, font);
     }
@@ -153,4 +111,49 @@ public class DisplayGame extends Display {
     public void setStuck(boolean stuck) {
         this.stuck = stuck;
     }
+
+    private List<Shape> drawTextCenter(String text, int size, Color color, List<Shape> shapes) {
+        final float BOX_PADDING = 1.5f;
+        final Color FILL_COLOR = new Color(0f, 0f, 0f, 0.1f);
+
+        final float TXT_WIDTH_MULT;
+        final float TXT_HEIGHT_MULT;
+        final float TXT_HEIGHT_CONST;
+
+        if (font == "Times New Roman") {
+            // doesn't really work
+            TXT_WIDTH_MULT = 0.6f;
+            TXT_HEIGHT_MULT = 2f;
+            TXT_HEIGHT_CONST = 0.7f;
+        } else { // "Cascadia Code"
+            TXT_WIDTH_MULT = 0.8f;
+            TXT_HEIGHT_MULT = 2f;
+            TXT_HEIGHT_CONST = 0.75f;
+        }
+
+        // font measurement of em height
+        float px;
+        if (size == 1)
+            px = 1;
+        else
+            px = size*0.75f;
+        
+        int txtWidth =  (int) (px*text.length()*TXT_WIDTH_MULT);
+        int txtHeight = (int) (px*TXT_HEIGHT_MULT);
+
+        // add text
+        shapes.add(new Text(text, (int)((WIDTH-txtWidth)/2), (int)((WIDTH-txtHeight)/2+txtHeight*TXT_HEIGHT_CONST),
+            size, color));
+
+        // add border box
+        shapes.add(new Rect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
+            (int)(txtWidth*BOX_PADDING), (int)(txtHeight*BOX_PADDING), 4, Color.BLACK));
+
+        // add fill box
+        shapes.add(new FillRect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
+            (int)(txtWidth*BOX_PADDING), (int)(txtHeight*BOX_PADDING), 4, FILL_COLOR));
+
+        return shapes;
+    }
+
 }

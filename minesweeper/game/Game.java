@@ -40,11 +40,14 @@ public class Game {
 
     private Mine[][] mines;
     private int bombCount;
+    private int lostX, lostY;
 
     public Game() { this(Difficulty.DEFAULT); }
     public Game(Difficulty d) { this(d.getX(), d.getY(), d.getBombs()); }
     public Game(int x, int y, int bombCount) {
         mines = new Mine[y][x];
+        lostX = -1;
+        lostY = -1;
         this.bombCount = bombCount;
 
         // initialize array
@@ -109,7 +112,8 @@ public class Game {
     public int uncoverTile(int x, int y, boolean throughRecursion) {
         // game over
         if (isBomb(x, y)) {
-            System.out.println(x+", "+y+" - game over :sad:");
+            lostX = x;
+            lostY = y;
             return 1;
         }
 
@@ -208,5 +212,9 @@ public class Game {
             mines[y][x].setValue(output);
             return output;
         }
+    }
+
+    public int[] getLostPos() {
+        return new int[] {lostX, lostY};
     }
 }
