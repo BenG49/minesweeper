@@ -72,6 +72,9 @@ public class SolverLib {
     protected static List<List<Integer>> getCombination(int targetX, int targetY, Game game) {
         if (targetX < 0 || targetX > game.getWidth() || targetY < 0 || targetY > game.getHeight())
             return new ArrayList<List<Integer>>();
+        
+        final boolean CALC_MULT_RIGHT_COMBINATIONS = true;
+        int validCombinationCount = 0;
 
         // list of tileGroups and uncoveredGroups
         List<List<List<List<Integer>>>> temp = getGroups(game);
@@ -98,8 +101,10 @@ public class SolverLib {
         // find all bomb combinations
         for (int i = 0; i < Math.pow(2, uncoveredCount); i++) {
             List<List<Integer>> bombArray = new ArrayList<List<Integer>>();
-            // THIS DOESNT TRANSLAE TO MIN/MAX BOMBS
             String bin = Integer.toBinaryString(i);
+
+            if (!withinMinMax(minBombs, maxBombs, bin))
+                continue;
 
             // loops through every uncovered tile
             for (int coord = 0; coord < uncoveredCount; coord++) {
@@ -109,6 +114,9 @@ public class SolverLib {
 
             // combination of bombs is valid
             if (validBombArrangement(tileGroups.get(targetGroup), bombArray, game)) {
+                if (CALC_MULT_RIGHT_COMBINATIONS)
+                    validCombinationCount++;
+
                 for (int coord = 0; coord < bombArray.size(); coord++) {
                     List<Integer> tempCoord = bombArray.get(coord);
 
@@ -116,14 +124,39 @@ public class SolverLib {
                     if (Math.abs(targetX-tempCoord.get(0)) < 2 && Math.abs(targetY-tempCoord.get(1)) < 2)
                         outputBombs.add(tempCoord);
                 }
-                break;
+
+                if (!CALC_MULT_RIGHT_COMBINATIONS || validCombinationCount > 0)
+                    break;
             }
+        }
+
+        if (CALC_MULT_RIGHT_COMBINATIONS && validCombinationCount > 0) {
+            outputBombs = new ArrayList<List<Integer>>();
+            System.out.println("oof");
         }
 
         return outputBombs;
     }
 
-    public static boolean validBombArrangement(List<List<Integer>> tileGroup, List<List<Integer>> flags, Game game) {
+    // TODO: can be optimized by using pre computed lookup table
+    private static boolean withinMinMax(int min, int max, String binCombination) {
+        int output = 0;
+
+        for (int i = 0; i < binCombination.length(); i++) {
+            if (binCombination.charAt(i) == '1')
+                output++;
+            
+            if (output > max)
+                return false;
+        }
+
+        if (output < min)
+            return false;
+        
+        return true;
+    }
+
+    private static boolean validBombArrangement(List<List<Integer>> tileGroup, List<List<Integer>> flags, Game game) {
         // tileGroup is fine
         for (int coord = 0; coord < tileGroup.size(); coord++) {
             int tempX = tileGroup.get(coord).get(0);

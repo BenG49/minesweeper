@@ -77,11 +77,11 @@ public class GameSolver {
                 int value = game.getNeighbors(x, y);
                 int undiscovered = SolverLib.getNeighborUndiscovered(x, y, game);
 
-                if (!moved && mainAlg(x, y, SolverLib.getFlagsLeft(x, y, game), undiscovered))
+                if (mainAlg(x, y, SolverLib.getFlagsLeft(x, y, game), undiscovered) && !moved)
                     moved = true;
 
                 // ONES FLANKING TWO
-                if (value == 2 && !moved && onesFlankingTwoAlg(x, y))
+                if (value == 2 && onesFlankingTwoAlg(x, y) && !moved)
                     moved = true;
             }
         }
