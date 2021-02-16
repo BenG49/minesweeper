@@ -3,6 +3,7 @@ package minesweeper.display.shapes;
 import java.util.List;
 import java.util.ArrayList;
 import java.awt.Color;
+import java.awt.*;
 
 public class FillRect extends Shape {
     private final int x, y, width, height, border;
@@ -17,20 +18,15 @@ public class FillRect extends Shape {
         this.fill = fill;
     }
 
-    public List<Object> getData() {
-        List<Object> output = new ArrayList<Object>();
-
-        output.add(x);
-        output.add(y);
-        output.add(width);
-        output.add(height);
-        output.add(border);
-        output.add(fill);
-        
-        return output;
-    }
-
     public ShapeType getShapeType() {
         return ShapeType.FILL_RECTANGLE;
+    }
+
+    public Graphics2D draw(Graphics2D g) {
+        g.setColor(fill);
+        g.setStroke(new BasicStroke(border));
+        g.drawRect(x, y, width, height);
+        
+        return g;
     }
 }

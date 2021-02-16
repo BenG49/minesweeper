@@ -39,23 +39,15 @@ public class DisplayGame extends Display {
         for (int y = 0; y < game.getHeight(); y++) {
             for (int x = 0; x < game.getWidth(); x++) {
                 shapes.add(new Rect(scale*x, scale*y, scale, scale, 2, Color.BLACK));
+
                 if (game.getNeighbors(x, y) != -1)
-                    shapes.add(new Text(
-                        Integer.toString(game.getNeighbors(x, y)),
-                        scale*x+(int)(scale*FONT_X_MULT),
-                        scale*y+(int)(scale*FONT_Y_MULT),
-                        scale/2,
-                        getColor(game.getNeighbors(x, y))
-                    ));
+                    shapes.add(new Text(Integer.toString(game.getNeighbors(x, y)), scale*x+(int)(scale*FONT_X_MULT),
+                        scale*y+(int)(scale*FONT_Y_MULT), scale/2, getColor(game.getNeighbors(x, y)), font, false));
                     
                 if (game.isFlagged(x, y))
-                    shapes.add(new Text(
-                        "F",
-                        scale*x+(int)(scale*FONT_X_MULT),
-                        scale*y+(int)(scale*FONT_Y_MULT),
-                        scale/2,
-                        FLAG_COLOR
-                    ));
+                    shapes.add(new Text( "F", scale*x+(int)(scale*FONT_X_MULT),
+                        scale*y+(int)(scale*FONT_Y_MULT), scale/2, FLAG_COLOR, font, false));
+
                 if (lost && game.getLostPos()[0] == x && game.getLostPos()[1] == y)
                     shapes.add(new FillRect(scale*x, scale*y, scale, scale, 1, new Color(1f, 0f, 0f, 0.5f)));
             }
@@ -143,7 +135,7 @@ public class DisplayGame extends Display {
 
         // add text
         shapes.add(new Text(text, (int)((WIDTH-txtWidth)/2), (int)((WIDTH-txtHeight)/2+txtHeight*TXT_HEIGHT_CONST),
-            size, color));
+            size, color, font, true));
 
         // add border box
         shapes.add(new Rect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
