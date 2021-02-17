@@ -23,7 +23,7 @@ public class FillRect extends Shape {
     public Graphics2D draw(Graphics2D g) {
         g.setColor(fill);
         g.setStroke(new BasicStroke(border));
-        g.drawRect(x, y, width, height);
+        g.fillRect(x, y, width, height);
         
         return g;
     }

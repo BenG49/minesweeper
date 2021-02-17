@@ -7,10 +7,11 @@ import minesweeper.display.shapes.Shape;
 public class Draw extends JPanel {
     private final Shape[] shapes;
     
-    public Draw(Shape[] shapes, String font) {
+    public Draw(Shape[] shapes, Color background) {
         this.shapes = shapes;
 
         setPreferredSize(new Dimension(1, 1));
+        setBackground(background);
     }
 
     @Override

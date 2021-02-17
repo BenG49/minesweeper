@@ -26,7 +26,7 @@ public class DisplayGame extends InputDisplay {
     public DisplayGame(Game game) { this(game, "Cascadia Code", 40); }
     public DisplayGame(Game game, String font) { this(game, font, 40); }
     public DisplayGame(Game game, String font, int scale) {
-        super(game.getWidth()*scale, game.getHeight()*scale);
+        super(game.getWidth()*scale, game.getHeight()*scale, Color.WHITE);
         
         this.game = game;
         this.scale = scale;
@@ -80,7 +80,7 @@ public class DisplayGame extends InputDisplay {
         for (int i = 0; i < output.length; i++)
             output[i] = shapes.get(i);
 
-        draw(output, font);
+        draw(output);
     }
 
     private Color getColor(int value) {
@@ -118,7 +118,7 @@ public class DisplayGame extends InputDisplay {
 
     private List<Shape> drawTextCenter(String text, int size, Color color, List<Shape> shapes) {
         final float BOX_PADDING = 1.5f;
-        final Color FILL_COLOR = new Color(0f, 0f, 0f, 1f);
+        final Color FILL_COLOR = new Color(0f, 0f, 0f, 0.15f);
 
         final float TXT_WIDTH_MULT;
         final float TXT_HEIGHT_MULT;
@@ -149,9 +149,13 @@ public class DisplayGame extends InputDisplay {
         shapes.add(new Text(text, (int)((WIDTH-txtWidth)/2), (int)((WIDTH-txtHeight)/2+txtHeight*TXT_HEIGHT_CONST),
             color, new Font(font, Font.BOLD, size)));
 
-        // add fill box - NOT WORKING
+        // add fill box
         shapes.add(new FillRect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
             (int)(txtWidth*BOX_PADDING), (int)(txtHeight*BOX_PADDING), 4, FILL_COLOR));
+
+        // add border box
+        shapes.add(new Rect( (int)((WIDTH-txtWidth*BOX_PADDING)/2), (int)((WIDTH-txtHeight*BOX_PADDING)/2),
+            (int)(txtWidth*BOX_PADDING), (int)(txtHeight*BOX_PADDING), 4, Color.BLACK));
 
         return shapes;
     }
