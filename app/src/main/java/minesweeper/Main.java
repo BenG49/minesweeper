@@ -13,7 +13,6 @@ public class Main {
             cont = false;
 
             Game g = new Game(Difficulty.MEDIUM);
-            // DisplayGame gameDisplay = new DisplayGame(g, "Times New Roman");
             DisplayGame gameDisplay = new DisplayGame(g);
             GameSolver solver = new GameSolver(g, gameDisplay);
 
