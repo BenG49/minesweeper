@@ -26,7 +26,7 @@ public class DisplayGame extends InputDisplay {
     public DisplayGame(Game game) { this(game, "Cascadia Code", 40); }
     public DisplayGame(Game game, String font) { this(game, font, 40); }
     public DisplayGame(Game game, String font, int scale) {
-        super(game.getWidth()*scale, game.getHeight()*scale, Color.WHITE);
+        super(game.getWidth()*scale, game.getHeight()*scale, Color.WHITE, "Minesweeper");
         
         this.game = game;
         this.scale = scale;
